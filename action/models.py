@@ -7,5 +7,5 @@ class Action(models.Model):
     channel = models.ForeignKey(Channel)
     fn_name = models.CharField(max_length=50)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0} - {1}".format(self.channel.name, self.name)

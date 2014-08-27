@@ -11,7 +11,7 @@ class Recipe(models.Model):
     trigger_json = models.TextField()
     action_json = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0}: {1} -> {2}".format(self.user.username,
                                         self.trigger.name,
                                         self.action.name)
