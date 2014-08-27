@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% load i18n %}
+
+{% block title %}
+{% trans "Add a Recipe" %}
+{% endblock %}
+
+{% block extra_head %}
+<style type="text/css" media="screen">
+  .container {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+  }
+  .col1 {
+      width: 50%;
+      float: left;
+  }
+  .col2 {
+      width: 50%;
+      float: left;
+  }
+  .center {
+      text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <form method="post" action="{% url 'add_recipe' %}">{% csrf_token %}
+    <div class="col1">
+      <h1>Trigger</h1>
+      <div class="row1">
+	{{ form.trigger_channel }}
+      </div>
+      <div class="row2">
+	{{ form.trigger }}
+      </div>
+    </div>
+    <div class="col2">
+      <h1>Action</h1>
+      <div class="row1">
+	{{ form.action_channel }}
+      </div>
+      <div class="row2">
+	{{ form.action }}
+      </div>    
+    </div>
+    <div class="center">
+      <input type="submit" value="Create" />
+    </div>    
+  </form>
+</div>
+{% endblock %}

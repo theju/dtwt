@@ -7,9 +7,9 @@ class Recipe(models.Model):
     user = models.ForeignKey(User)
     trigger = models.ForeignKey(Trigger)
     action = models.ForeignKey(Action)
-    last_checked = models.DateTimeField()
-    trigger_json = models.TextField()
-    action_json = models.TextField()
+    last_checked = models.DateTimeField(auto_now_add=True,auto_now=True)
+    trigger_json = models.TextField(default="{}")
+    action_json = models.TextField(default="{}")
 
     def __str__(self):
         return "{0}: {1} -> {2}".format(self.user.username,
