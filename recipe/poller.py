@@ -7,7 +7,6 @@ corresponding actions have to be triggered.
 Script is intentionally django-agnostic and relies on raw SQL.
 """
 
-import redis
 import json
 import psycopg2
 import psycopg2.extras
@@ -22,7 +21,6 @@ def main():
     trigger_module = importlib.import_module("trigger.triggers")
     action_module = importlib.import_module("action.actions")
 
-    client = redis.Redis()
     conn = psycopg2.connect("dbname=ifttt user=theju")
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -36,11 +34,15 @@ def main():
     actions = cursor.fetchall()
 
     triggers_by_id = {}
-    for trigger in triggers:
+    for trigger_row in triggers:
+        trigger = {"obj": getattr(trigger_module, trigger_row["klass"])()}
+        trigger.update(trigger_row)
         triggers_by_id[trigger["id"]] = trigger
 
     actions_by_id = {}
-    for action in actions:
+    for action_row in actions:
+        action = {"obj": getattr(action_module, action_row["klass"])()}
+        action.update(action_row)
         actions_by_id[action["id"]] = action
 
     cursor.execute("SELECT * FROM recipe_recipe")
@@ -52,11 +54,11 @@ def main():
         action_id  = recipe["action_id"]
         trigger = triggers_by_id[trigger_id]
         action = actions_by_id[action_id]
-        trigger_fn = getattr(trigger_module, trigger["fn_name"])
-        event_triggered = trigger_fn(recipe, **json.loads(recipe["trigger_json"]))
+        trigger_fn = trigger["obj"].trigger
+        event_triggered = trigger_fn(recipe, **json.loads(recipe["trigger_params"]))
         if event_triggered:
-            action_fn  = getattr(action_module, action["fn_name"])
-            success = action_fn(recipe, **json.loads(recipe["action_json"]))
+            action_fn  = action["obj"].action
+            success = action_fn(recipe, **json.loads(recipe["action_params"]))
             if success:
                 recipe_update.append((datetime.datetime.now(), recipe["id"]))
     if recipe_update:
