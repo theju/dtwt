@@ -3,6 +3,7 @@ import feedparser
 from dateutil import parser
 import time
 import datetime
+from django.shortcuts import render
 
 class Trigger(object):
     def render(self, request):
@@ -36,13 +37,13 @@ class DropboxFileUpload(Trigger):
 
 class FeedContains(Trigger):
     def render(self, request):
-        pass
+        return render(request, "triggers/feed_contains.html")
 
     def validate(self, request):
         pass
 
     def trigger(self, recipe, **kwargs):
-        feed_url = kwargs["feed_url"]
+        feed_url = kwargs["trigger"]["feed_url"]
         try:
             response = requests.get(feed_url)
         except requests.exceptions.RequestError:
@@ -53,7 +54,7 @@ class FeedContains(Trigger):
         for feed in parsed_feed.entries:
             pub_date = parser.parse(feed.published)
             if pub_date > recipe["last_checked"]:
-                if kwargs.get("phrase"):
-                    if kwargs["phrase"] in feed.description:
+                if kwargs["trigger"].get("phrase"):
+                    if kwargs["trigger"]["phrase"] in feed.description:
                         return True
     

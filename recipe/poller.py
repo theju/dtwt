@@ -55,10 +55,12 @@ def main():
         trigger = triggers_by_id[trigger_id]
         action = actions_by_id[action_id]
         trigger_fn = trigger["obj"].trigger
-        event_triggered = trigger_fn(recipe, **json.loads(recipe["trigger_params"]))
+        params = {"trigger": json.loads(recipe["trigger_params"])}
+        event_triggered = trigger_fn(recipe, params)
         if event_triggered:
             action_fn  = action["obj"].action
-            success = action_fn(recipe, **json.loads(recipe["action_params"]))
+            params.update({"action": json.loads(recipe["action_params"])})
+            success = action_fn(recipe, params)
             if success:
                 recipe_update.append((datetime.datetime.now(), recipe["id"]))
     if recipe_update:

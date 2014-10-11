@@ -22,33 +22,102 @@
   .center {
       text-align: center;
   }
+  .clear {
+      clear: both;
+  }
+  .hide {
+      display: none;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
   <form method="post" action="{% url 'add_recipe' %}">{% csrf_token %}
-    <div class="col1">
+    <div class="col1 trigger">
       <h1>Trigger</h1>
       <div class="row1">
 	{{ form.trigger_channel }}
       </div>
-      <div class="row2">
-	{{ form.trigger }}
+      <div class="row2 hide">
+	<select name="trigger">
+	</select>
+      </div>
+      <div class="row3 hide">
       </div>
     </div>
-    <div class="col2">
+    <div class="col2 action">
       <h1>Action</h1>
       <div class="row1">
 	{{ form.action_channel }}
       </div>
-      <div class="row2">
-	{{ form.action }}
-      </div>    
+      <div class="row2 hide">
+	<select name="action">
+	</select>
+      </div>
+      <div class="row3 hide">
+      </div>
     </div>
     <div class="center">
-      <input type="submit" value="Create" />
+      <p><input type="submit" value="Create"></p>
     </div>    
   </form>
 </div>
+{% endblock %}
+
+{% block extra_body %}
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+  var channelTriggerMap = {{ channel_trigger_map|safe }};
+  var channelActionMap = {{ channel_action_map|safe }};
+</script>
+<script type="text/javascript">
+  $(function() {
+      var emptyOptionVal = "-----";
+      $("#id_trigger_channel").on("change", function() {
+	  var triggers = channelTriggerMap[$("#id_trigger_channel").val()];
+	  $("select[name=trigger]").children().remove();
+	  $("select[name=trigger]").parent().removeClass("hide");
+	  $("select[name=trigger]").append('<option>' + emptyOptionVal + '</option>');
+	  if (triggers) {
+	      $.each(triggers, function(ii, kk) {
+		  $("select[name=trigger]").append('<option value="' + kk.id + '">' + kk.name + '</option>');
+	      });
+	  }
+      });
+      $("select[name=trigger]").on("change", function() {
+	  var triggerId = $("select[name=trigger] option:selected").val();
+	  if (triggerId !== emptyOptionVal) {
+	      $(".trigger .row3").html("");
+	      $(".trigger .row3").load("/trigger/" + triggerId + "/render/", function(responseText, status, jqXHR) {
+		  if (status !== "error") {
+		      $(".trigger .row3").removeClass("hide").html(responseText);
+		  }
+	      });
+	  }
+      });
+      $("#id_action_channel").on("change", function() {
+	  var actions = channelActionMap[$("#id_action_channel").val()];
+	  $("select[name=action]").children().remove();
+	  $("select[name=action]").parent().removeClass("hide");
+	  $("select[name=action]").append('<option>' + emptyOptionVal + '</option>');
+	  if (actions) {
+	      $.each(actions, function(ii, kk) {
+		  $("select[name=action]").append('<option value="' + kk.id + '">' + kk.name + '</option>');
+	      });
+	  }
+      });
+      $("select[name=action]").on("change", function() {
+	  var actionId = $("select[name=action] option:selected").val();
+	  if (actionId !== emptyOptionVal) {
+	      $(".action .row3").html("");
+	      $(".action .row3").load("/action/" + actionId + "/render/", function(responseText, status, jqXHR) {
+		  if (status !== "error") {
+		      $(".action .row3").removeClass("hide").html(responseText);
+		  }
+	      });
+	  }
+      });
+  });
+</script>
 {% endblock %}

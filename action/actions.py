@@ -1,4 +1,8 @@
 import requests
+from django.shortcuts import render
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template import Template, Context
 
 class Action(object):
     def render(self, request):
@@ -12,7 +16,7 @@ class Action(object):
 
 class SendHTTPRequest(Action):
     def render(self, request):
-        pass
+        return render(request, "actions/send_http_request.html")
 
     def validate(self, request):
         pass
@@ -34,10 +38,16 @@ class SendHTTPRequest(Action):
 
 class SendEmail(Action):
     def render(self, request):
-        pass
+        return render(request, "actions/send_email.html")
 
     def validate(self, request):
         pass
 
     def action(self, recipe, **kwargs):
-        pass
+        subject_template = kwargs["action"]["subject"]
+        message_template = kwargs["action"]["message"]
+        subject = Template(subject_template).render(Context(kwargs))
+        message = Template(message_template).render(Context(kwargs))
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL,
+                  kwargs["action"]["to_email"].split(","))
+        return True
