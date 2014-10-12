@@ -3,22 +3,28 @@ import feedparser
 from dateutil import parser
 import time
 import datetime
+import requests
 from django.shortcuts import render
-from .forms import FeedContainsForm
-from django.template import RequestContext
+from django.conf import settings
+from django.contrib.sites.models import RequestSite
+from django.core.urlresolvers import reverse
+from .forms import FeedContainsForm, DropboxFileUploadForm
+
+from dropbox.client import DropboxOAuth2Flow, DropboxClient
 
 class Trigger(object):
     template_name = None
     form_class = None
 
     def __init__(self, *args, **kwargs):
-        self.form = self.form_class()
+        self.form = self.form_class() if self.form_class else None
 
     def render(self, request):
-        return render(request, self.template_name,
-                      context_instance=RequestContext(request, {"form": self.form}))
+        return render(request, self.template_name, {"form": self.form})
 
     def validate(self, request):
+        if not self.form_class:
+            return (True, {})
         form = self.form_class(request.POST)
         if form.is_valid():
             return (True, form.cleaned_data)
@@ -29,11 +35,38 @@ class Trigger(object):
 
 
 class DropboxFileUpload(Trigger):
-    def validate(self, request):
-        pass
+    template_name = "triggers/dropbox_file_upload.html"
+    form_class = DropboxFileUploadForm
 
+    def render(self, request):
+        redirect_uri = "{0}://{1}{2}".format("https" if request.is_secure() else "http",
+                                             RequestSite(request).domain,
+                                             reverse("dropbox_oauth2_redirect"))
+        csrf_key = "dropbox-auth-csrf-token"
+        session_dict = {}
+        authorize_url = DropboxOAuth2Flow(settings.DROPBOX_APP_KEY,
+                                          settings.DROPBOX_APP_SECRET,
+                                          redirect_uri,
+                                          session_dict, csrf_key).start()
+        request.session[csrf_key] = str(session_dict[csrf_key])
+        context = {"form": self.form,
+                   "redirect_url": authorize_url,
+                   "dropbox_access_token": request.session.get("dropbox_access_token")}
+        return render(request, self.template_name, context)
+        
     def trigger(self, recipe, **kwargs):
-        pass
+        url = ("https://api.dropbox.com/1/metadata/auto/"
+               "{0}?access_token={1}").format(kwargs["trigger"]["folder_name"],
+                                              kwargs["trigger"]["_access_token"])
+        if kwargs["trigger"].get("hash"):
+            url += "&hash={0}".format(kwargs["trigger"]["hash"])
+        response = requests.get(url)
+        if not response.ok:
+            return False
+        if response.status_code == 304:
+            return False
+        kwargs["trigger"]["hash"] = response.json()["hash"]
+        return (True, kwargs["trigger"])
 
 
 class FeedContains(Trigger):

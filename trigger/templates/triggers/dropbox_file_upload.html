@@ -1,0 +1,7 @@
+{% if dropbox_access_token %}
+Connected to Dropbox
+<input name="_access_token" type="hidden" value="{{ dropbox_access_token }}" />
+{% else %}
+<a href="{{ redirect_url }}">Authorize Dropbox</a>
+{% endif %}
+<p><input type="text" name="folder_name" placeholder="Folder name" /></p>

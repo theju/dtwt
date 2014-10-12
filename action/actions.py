@@ -2,7 +2,7 @@ import requests
 from django.shortcuts import render
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template import Template, RequestContext, Context
+from django.template import Template, Context
 from .forms import SendEmailForm, SendHTTPRequestForm
 
 class Action(object):
@@ -13,8 +13,7 @@ class Action(object):
         self.form = self.form_class()
 
     def render(self, request):
-        return render(request, self.template_name,
-                      context_instance=RequestContext(request, {"form": self.form}))
+        return render(request, self.template_name, {"form": self.form})
 
     def validate(self, request):
         form = self.form_class(request.POST)
@@ -33,10 +32,11 @@ class SendHTTPRequest(Action):
     def action(self, recipe, **kwargs):
         http_fn = getattr(requests, kwargs["action"]["http_method"])
         nkwargs = {}
+        context = Context(kwargs)
         if kwargs["action"]["http_method"] == "get":
-            nkwargs["params"] = kwargs["action"].get("http_data", {})
+            nkwargs["params"] = Template(kwargs["action"].get("http_data", "")).render(context)
         else:
-            nkwargs["data"] = kwargs["action"].get("http_data", {})
+            nkwargs["data"] = Template(kwargs["action"].get("http_data", "")).render(context)
         try:
             response = http_fn(kwargs["action"]["http_url"], **nkwargs)
         except requests.exceptions.RequestException:
