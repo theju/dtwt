@@ -56,16 +56,17 @@ def main():
         action = actions_by_id[action_id]
         trigger_fn = trigger["obj"].trigger
         params = {"trigger": json.loads(recipe["trigger_params"])}
-        event_triggered = trigger_fn(recipe, params)
+        event_triggered = trigger_fn(recipe, **params)
         if event_triggered:
             action_fn  = action["obj"].action
             params.update({"action": json.loads(recipe["action_params"])})
-            success = action_fn(recipe, params)
+            success = action_fn(recipe, **params)
             if success:
                 recipe_update.append((datetime.datetime.now(), recipe["id"]))
     if recipe_update:
         cursor.executemany("UPDATE recipe_recipe SET last_checked=%s "
                            "WHERE id=%s", recipe_update)
+        conn.commit()
 
     cursor.close()
     conn.close()

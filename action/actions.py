@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template import Template, Context
+from .forms import SendEmailForm
 
 class Action(object):
     def render(self, request):
@@ -41,7 +42,10 @@ class SendEmail(Action):
         return render(request, "actions/send_email.html")
 
     def validate(self, request):
-        pass
+        form = SendEmailForm(request.POST)
+        if form.is_valid():
+            return (True, form.cleaned_data)
+        return (False, form.errors)
 
     def action(self, recipe, **kwargs):
         subject_template = kwargs["action"]["subject"]

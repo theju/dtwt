@@ -33,7 +33,7 @@
 
 {% block content %}
 <div class="container">
-  <form method="post" action="{% url 'add_recipe' %}">{% csrf_token %}
+  <form>{% csrf_token %}
     <div class="col1 trigger">
       <h1>Trigger</h1>
       <div class="row1">
@@ -59,7 +59,7 @@
       </div>
     </div>
     <div class="center">
-      <p><input type="submit" value="Create"></p>
+      <p><input type="button" class="submit" value="Create"></p>
     </div>    
   </form>
 </div>
@@ -117,6 +117,18 @@
 		  }
 	      });
 	  }
+      });
+      $("input.submit").on("click", function(ev) {
+	  ev.stopImmediatePropagation();
+	  $("p.error").remove();
+	  $.post("{% url 'add_recipe' %}", $("form").serialize(), function(responseText, status, jqXHR) {
+	      window.location = "{% url 'view_user_recipes' %}";
+	  }).fail(function(jqXHR, status, responseText) {
+	      $.each(JSON.parse(jqXHR.responseText), function(key, val) {
+		  $("[name=" + key + "]").before('<p class="error">' + val + '</p>')
+	      });
+	  });
+	  return false;
       });
   });
 </script>

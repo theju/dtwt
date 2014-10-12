@@ -4,6 +4,7 @@ from dateutil import parser
 import time
 import datetime
 from django.shortcuts import render
+from .forms import FeedContainsForm
 
 class Trigger(object):
     def render(self, request):
@@ -40,7 +41,10 @@ class FeedContains(Trigger):
         return render(request, "triggers/feed_contains.html")
 
     def validate(self, request):
-        pass
+        form = FeedContainsForm(request.POST)
+        if form.is_valid():
+            return (True, form.cleaned_data)
+        return (False, form.errors)
 
     def trigger(self, recipe, **kwargs):
         feed_url = kwargs["trigger"]["feed_url"]
