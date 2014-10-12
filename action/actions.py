@@ -2,50 +2,53 @@ import requests
 from django.shortcuts import render
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template import Template, Context
-from .forms import SendEmailForm
+from django.template import Template, RequestContext, Context
+from .forms import SendEmailForm, SendHTTPRequestForm
 
 class Action(object):
+    form_class = None
+    template_name = None
+
+    def __init__(self, *args, **kwargs):
+        self.form = self.form_class()
+
     def render(self, request):
-        pass
+        return render(request, self.template_name,
+                      context_instance=RequestContext(request, {"form": self.form}))
 
     def validate(self, request):
-        pass
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            return (True, form.cleaned_data)
+        return (False, form.errors)
 
     def action(self, recipe, **kwargs):
-        pass
+        raise NotImplementedError
+
 
 class SendHTTPRequest(Action):
-    def render(self, request):
-        return render(request, "actions/send_http_request.html")
-
-    def validate(self, request):
-        pass
+    template_name = "actions/send_http_request.html"
+    form_class = SendHTTPRequestForm
 
     def action(self, recipe, **kwargs):
-        http_fn = getattr(requests, kwargs["http_method"])
+        http_fn = getattr(requests, kwargs["action"]["http_method"])
         nkwargs = {}
-        if kwargs["http_method"] == "get":
-            nkwargs["params"] = kwargs.get("http_data", {})
+        if kwargs["action"]["http_method"] == "get":
+            nkwargs["params"] = kwargs["action"].get("http_data", {})
         else:
-            nkwargs["data"] = kwargs.get("http_data", {})
+            nkwargs["data"] = kwargs["action"].get("http_data", {})
         try:
-            response = http_fn(kwargs["http_url"], **nkwargs)
+            response = http_fn(kwargs["action"]["http_url"], **nkwargs)
         except requests.exceptions.RequestException:
             return False
         if not response.ok:
             return False
         return True
 
-class SendEmail(Action):
-    def render(self, request):
-        return render(request, "actions/send_email.html")
 
-    def validate(self, request):
-        form = SendEmailForm(request.POST)
-        if form.is_valid():
-            return (True, form.cleaned_data)
-        return (False, form.errors)
+class SendEmail(Action):
+    template_name = "actions/send_email.html"
+    form_class = SendEmailForm
 
     def action(self, recipe, **kwargs):
         subject_template = kwargs["action"]["subject"]
