@@ -64,9 +64,10 @@ def main():
             params.update({"action": json.loads(recipe["action_params"])})
             success = action_fn(recipe, **params)
             if success:
-                recipe_update.append((datetime.datetime.now(), recipe["id"],
+                recipe_update.append((datetime.datetime.now(),
                                       json.dumps(params["trigger"]),
-                                      json.dumps(params["action"])))
+                                      json.dumps(params["action"]),
+                                      recipe["id"]))
     if recipe_update:
         cursor.executemany("UPDATE recipe_recipe SET last_checked=%s,"
                            "trigger_params=%s,action_params=%s "
