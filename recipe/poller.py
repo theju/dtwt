@@ -56,10 +56,9 @@ def main():
         action = actions_by_id[action_id]
         trigger_fn = trigger["obj"].trigger
         params = {"trigger": json.loads(recipe["trigger_params"])}
-        event_triggered = trigger_fn(recipe, **params)
+        event_triggered, trigger_ret = trigger_fn(recipe, **params)
         if event_triggered:
-            if isinstance(event_triggered, (list, tuple)):
-                params["trigger"] = event_triggered[1]
+            params["trigger"] = trigger_ret
             action_fn  = action["obj"].action
             params.update({"action": json.loads(recipe["action_params"])})
             success = action_fn(recipe, **params)

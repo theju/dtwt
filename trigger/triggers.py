@@ -62,9 +62,9 @@ class DropboxFileUpload(Trigger):
             url += "&hash={0}".format(kwargs["trigger"]["hash"])
         response = requests.get(url)
         if not response.ok:
-            return False
+            return (False, ())
         if response.status_code == 304:
-            return False
+            return (False, ())
         kwargs["trigger"]["hash"] = response.json()["hash"]
         return (True, kwargs["trigger"])
 
@@ -78,14 +78,19 @@ class FeedContains(Trigger):
         try:
             response = requests.get(feed_url)
         except requests.exceptions.RequestError:
-            return False
+            return (False, ())
         parsed_feed = feedparser.parse(response.content.lower())
         if not len(parsed_feed['entries']):
-            return False
+            return (False, ())
+        matched_feeds = []
         for feed in parsed_feed.entries:
             pub_date = parser.parse(feed.published)
             if pub_date > recipe["last_checked"]:
                 if kwargs["trigger"].get("phrase"):
                     if kwargs["trigger"]["phrase"] in feed.description:
-                        return True
+                        matched_feeds.append(feed)
+        if matched_feeds:
+            kwargs["trigger"]["matched_entries"] = matched_feeds
+            return (True, kwargs["trigger"])
+        return (False, ())
     
