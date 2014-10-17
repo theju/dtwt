@@ -4,11 +4,13 @@ from dateutil import parser
 import time
 import datetime
 import requests
+import json
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.sites.models import RequestSite
 from django.core.urlresolvers import reverse
 from .forms import FeedContainsForm, DropboxFileUploadForm
+from recipe.models import Recipe
 
 from dropbox.client import DropboxOAuth2Flow, DropboxClient
 
@@ -65,7 +67,12 @@ class DropboxFileUpload(Trigger):
             return (False, ())
         if response.status_code == 304:
             return (False, ())
-        kwargs["trigger"]["hash"] = response.json()["hash"]
+        kwargs["trigger"]["response"] = response.json()
+        instance = Recipe.objects.get(id=recipe["id"])
+        trigger_params = json.loads(instance.trigger_params)
+        trigger_params["hash"] = response.json()["hash"]
+        instance.trigger_params = json.dumps(trigger_params)
+        instance.save()
         return (True, kwargs["trigger"])
 
 
@@ -93,4 +100,3 @@ class FeedContains(Trigger):
             kwargs["trigger"]["matched_entries"] = matched_feeds
             return (True, kwargs["trigger"])
         return (False, ())
-    
