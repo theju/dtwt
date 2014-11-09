@@ -1,4 +1,5 @@
 import requests
+import json
 from django.shortcuts import render
 from django.core.mail import send_mail
 from django.conf import settings
@@ -12,8 +13,13 @@ class Action(object):
     def __init__(self, *args, **kwargs):
         self.form = self.form_class()
 
-    def render(self, request):
-        return render(request, self.template_name, {"form": self.form})
+    def render(self, request, **kwargs):
+        context = {"form": self.form}
+        if kwargs.get("recipe"):
+            recipe = kwargs["recipe"]
+            recipe.action_params = json.loads(recipe.action_params)
+            context["recipe"] = recipe
+        return render(request, self.template_name, context)
 
     def validate(self, request):
         form = self.form_class(request.POST)

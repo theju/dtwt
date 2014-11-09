@@ -21,8 +21,13 @@ class Trigger(object):
     def __init__(self, *args, **kwargs):
         self.form = self.form_class() if self.form_class else None
 
-    def render(self, request):
-        return render(request, self.template_name, {"form": self.form})
+    def render(self, request, **kwargs):
+        context = {"form": self.form}
+        if kwargs.get("recipe"):
+            recipe = kwargs["recipe"]
+            recipe.trigger_params = json.loads(recipe.trigger_params)
+            context["recipe"] = recipe
+        return render(request, self.template_name, context)
 
     def validate(self, request):
         if not self.form_class:
@@ -40,20 +45,30 @@ class DropboxFileUpload(Trigger):
     template_name = "triggers/dropbox_file_upload.html"
     form_class = DropboxFileUploadForm
 
-    def render(self, request):
-        redirect_uri = "{0}://{1}{2}".format("https" if request.is_secure() else "http",
-                                             RequestSite(request).domain,
-                                             reverse("dropbox_oauth2_redirect"))
-        csrf_key = "dropbox-auth-csrf-token"
-        session_dict = {}
-        authorize_url = DropboxOAuth2Flow(settings.DROPBOX_APP_KEY,
-                                          settings.DROPBOX_APP_SECRET,
-                                          redirect_uri,
-                                          session_dict, csrf_key).start()
-        request.session[csrf_key] = str(session_dict[csrf_key])
+    def render(self, request, **kwargs):
+        recipe = kwargs.get("recipe")
+        if not recipe:
+            redirect_uri = "{0}://{1}{2}".format("https" if request.is_secure() else "http",
+                                                 RequestSite(request).domain,
+                                                 reverse("dropbox_oauth2_redirect"))
+            csrf_key = "dropbox-auth-csrf-token"
+            session_dict = {}
+            authorize_url = DropboxOAuth2Flow(settings.DROPBOX_APP_KEY,
+                                              settings.DROPBOX_APP_SECRET,
+                                              redirect_uri,
+                                              session_dict, csrf_key).start()
+            request.session[csrf_key] = str(session_dict[csrf_key])
+            dropbox_access_token = request.session.get("dropbox_access_token")
+            folder_name = ""
+        else:
+            trigger_params = json.loads(recipe.trigger_params)
+            dropbox_access_token = trigger_params["_access_token"]
+            authorize_url = None
+            folder_name = trigger_params["folder_name"]
         context = {"form": self.form,
                    "redirect_url": authorize_url,
-                   "dropbox_access_token": request.session.get("dropbox_access_token")}
+                   "dropbox_access_token": dropbox_access_token,
+                   "folder_name": folder_name}
         return render(request, self.template_name, context)
         
     def trigger(self, recipe, **kwargs):

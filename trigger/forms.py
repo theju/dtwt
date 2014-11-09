@@ -6,5 +6,5 @@ class FeedContainsForm(forms.Form):
 
 
 class DropboxFileUploadForm(forms.Form):
-    _access_token = forms.CharField()
+    _access_token = forms.CharField(widget=forms.HiddenInput())
     folder_name = forms.CharField()

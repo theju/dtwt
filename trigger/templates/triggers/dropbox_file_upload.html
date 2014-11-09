@@ -4,4 +4,4 @@ Connected to Dropbox
 {% else %}
 <a href="{{ redirect_url }}">Authorize Dropbox</a>
 {% endif %}
-<p><input type="text" name="folder_name" placeholder="Folder name" /></p>
+<p><input type="text" name="folder_name" placeholder="Folder name" {% if folder_name %}value="{{ folder_name }}"{% endif %}></p>

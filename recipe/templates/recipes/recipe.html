@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% load i18n %}
 
 {% block title %}
-{% trans "Add a Recipe" %}
+{% if recipe %}{% trans "Edit recipe" %}{% else %}{% trans "Add a recipe" %}{% endif %}
 {% endblock %}
 
 {% block extra_head %}
@@ -40,8 +40,7 @@
 	{{ form.trigger_channel }}
       </div>
       <div class="row2 hide">
-	<select name="trigger">
-	</select>
+	{{ form.trigger }}
       </div>
       <div class="row3 hide">
       </div>
@@ -52,8 +51,7 @@
 	{{ form.action_channel }}
       </div>
       <div class="row2 hide">
-	<select name="action">
-	</select>
+	{{ form.action }}
       </div>
       <div class="row3 hide">
       </div>
@@ -74,6 +72,10 @@
 <script type="text/javascript">
   $(function() {
       var emptyOptionVal = "-----";
+      var selectedTrigger;
+      if ($("select[name=trigger] option:selected").val()) {
+	  selectedTrigger = $("select[name=trigger] option:selected");
+      }
       $("#id_trigger_channel").on("change", function() {
 	  var triggers = channelTriggerMap[$("#id_trigger_channel").val()];
 	  $("select[name=trigger]").children().remove();
@@ -84,18 +86,39 @@
 		  $("select[name=trigger]").append('<option value="' + kk.id + '">' + kk.name + '</option>');
 	      });
 	  }
+	  if (selectedTrigger) {
+	      $("select[name=trigger] option").each(function() {
+		  var $this = $(this);
+		  if ($this.val() === selectedTrigger.val()) {
+		      $this.attr("selected", "selected");
+		  }
+	      });
+	      $("selected[name=trigger]").parent().removeClass("hide");
+	  }
       });
       $("select[name=trigger]").on("change", function() {
 	  var triggerId = $("select[name=trigger] option:selected").val();
 	  if (triggerId !== emptyOptionVal) {
 	      $(".trigger .row3").html("");
-	      $(".trigger .row3").load("/trigger/" + triggerId + "/render/", function(responseText, status, jqXHR) {
+	      var triggerURL = "/trigger/" + triggerId + "/render/";
+	      if (selectedTrigger) {
+		  triggerURL += "?recipe=" + "{{ recipe.id }}";
+	      }
+	      $(".trigger .row3").load(triggerURL, function(responseText, status, jqXHR) {
 		  if (status !== "error") {
 		      $(".trigger .row3").removeClass("hide").html(responseText);
 		  }
 	      });
 	  }
       });
+      if (selectedTrigger) {
+	  $("#id_trigger_channel").trigger("change");
+	  $("select[name=trigger]").trigger("change");
+      }
+      var selectedAction;
+      if ($("select[name=action] option:selected").val()) {
+	  selectedAction = $("select[name=action] option:selected");
+      }
       $("#id_action_channel").on("change", function() {
 	  var actions = channelActionMap[$("#id_action_channel").val()];
 	  $("select[name=action]").children().remove();
@@ -106,18 +129,35 @@
 		  $("select[name=action]").append('<option value="' + kk.id + '">' + kk.name + '</option>');
 	      });
 	  }
+	  if (selectedAction) {
+	      $("select[name=action] option").each(function() {
+		  var $this = $(this);
+		  if ($this.val() === selectedAction.val()) {
+		      $this.attr("selected", "selected");
+		  }
+	      });
+	      $("selected[name=action]").parent().removeClass("hide");
+	  }
       });
       $("select[name=action]").on("change", function() {
 	  var actionId = $("select[name=action] option:selected").val();
 	  if (actionId !== emptyOptionVal) {
 	      $(".action .row3").html("");
-	      $(".action .row3").load("/action/" + actionId + "/render/", function(responseText, status, jqXHR) {
+	      var actionURL = "/action/" + actionId + "/render/";
+	      if (selectedAction) {
+		  actionURL += "?recipe=" + "{{ recipe.id }}";
+	      }
+	      $(".action .row3").load(actionURL, function(responseText, status, jqXHR) {
 		  if (status !== "error") {
 		      $(".action .row3").removeClass("hide").html(responseText);
 		  }
 	      });
 	  }
       });
+      if (selectedAction) {
+	  $("#id_action_channel").trigger("change");
+	  $("select[name=action]").trigger("change");
+      }
       $("input.submit").on("click", function(ev) {
 	  ev.stopImmediatePropagation();
 	  $("p.error").remove();

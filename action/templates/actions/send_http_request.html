@@ -1,4 +1,4 @@
-<p><input type="text" name="http_url" placeholder="Enter URL to be pinged" /></p>
+<p><input type="text" name="http_url" placeholder="Enter URL to be pinged" value="{{ recipe.action_params.http_url }}"></p>
 <p>
   <select name="http_method">
     <option value="get">GET</option>
@@ -6,5 +6,5 @@
   </select>
 </p>
 <p>
-  <textarea name="http_data" placeholder="URL encoded data to be sent (optional)"></textarea>
+  <textarea name="http_data" placeholder="URL encoded data to be sent (optional)">{{ recipe.action_params.http_data }}</textarea>
 </p>

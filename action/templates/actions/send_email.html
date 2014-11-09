@@ -1,5 +1,5 @@
-<p><input type="text" name="to_email" placeholder="Enter recipient (to@example.com)" /></p>
-<p><input type="text" name="subject" placeholder="Enter email subject template" /></p>
+<p><input type="text" name="to_email" placeholder="Enter recipient (to@example.com)" value="{{ recipe.action_params.to_email }}"></p>
+<p><input type="text" name="subject" placeholder="Enter email subject template" value="{{ recipe.action_params.subject }}"></p>
 <p>
-  <textarea name="message" placeholder="Enter message"></textarea>
+  <textarea name="message" placeholder="Enter message">{{ recipe.action_params.message }}</textarea>
 </p>
