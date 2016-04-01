@@ -17,6 +17,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def main():
     trigger_module = importlib.import_module("trigger.triggers")
     action_module = importlib.import_module("action.actions")

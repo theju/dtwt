@@ -3,11 +3,12 @@ from trigger.models import Trigger
 from action.models import Action
 from accounts.models import User
 
+
 class Recipe(models.Model):
     user = models.ForeignKey(User)
     trigger = models.ForeignKey(Trigger)
     action = models.ForeignKey(Action)
-    last_checked = models.DateTimeField(auto_now_add=True,auto_now=True)
+    last_checked = models.DateTimeField(auto_now=True)
     trigger_params = models.TextField(default="{}")
     action_params = models.TextField(default="{}")
 

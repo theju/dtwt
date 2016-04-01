@@ -2,6 +2,7 @@ from django import forms
 from .models import Recipe
 from channel.models import Channel
 
+
 class RecipeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RecipeForm, self).__init__(*args, **kwargs)

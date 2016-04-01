@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from action import actions
 from recipe.models import Recipe
 
+
 @login_required
 def render_action_params(request, action_id=None):
     try:

@@ -10,6 +10,7 @@ from action.models import Action
 from action import actions
 import collections
 
+
 @login_required
 def recipe(request, recipe_id=None):
     instance = None

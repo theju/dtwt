@@ -6,6 +6,7 @@ from django.conf import settings
 from django.template import Template, Context
 from .forms import SendEmailForm, SendHTTPRequestForm
 
+
 class Action(object):
     form_class = None
     template_name = None

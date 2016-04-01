@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from trigger import triggers
 from recipe.models import Recipe
 
+
 @login_required
 def render_trigger_params(request, trigger_id=None):
     try:

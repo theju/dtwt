@@ -7,12 +7,13 @@ import requests
 import json
 from django.shortcuts import render
 from django.conf import settings
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.core.urlresolvers import reverse
 from .forms import FeedContainsForm, DropboxFileUploadForm
 from recipe.models import Recipe
 
 from dropbox.client import DropboxOAuth2Flow, DropboxClient
+
 
 class Trigger(object):
     template_name = None

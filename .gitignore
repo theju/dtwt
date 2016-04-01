@@ -1,4 +1,6 @@
 *~
 *.swp
 *.pyc
+local.py
 db.sqlite3
+__pycache__/

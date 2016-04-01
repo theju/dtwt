@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseRedirect
 from dropbox.client import DropboxOAuth2Flow, DropboxClient
 from django.conf import settings
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.core.urlresolvers import reverse
+
 
 def dropbox_oauth2_redirect(request):
     redirect_uri = "{0}://{1}{2}".format("https" if request.is_secure() else "http",
